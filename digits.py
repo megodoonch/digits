@@ -24,7 +24,7 @@ Definitions:
 
 DONE Create a game with a solution (the target and starters)
 
-TODO GUI (ask Soren)
+TODO GUI (ask Soren?)
 
 """
 import random
@@ -44,9 +44,6 @@ class Game:
     Attributes:
         target: the number the player wants to reach
         field: the current numbers (initialised to the 6 starters)
-
-    TODO:
-        undo: probably go back to GameState, and keep a list of GameStates in a Game.
     """
 
     def __init__(self, target, field: list[int]):
@@ -55,13 +52,17 @@ class Game:
         self.field = field
         self.operations = ["+", "-", "x", "/"]
         self.won = self.target in self.field
+        self.history = [copy(self.field)]
 
     def __repr__(self):
         s = ""
-        s += f"target: {self.target}\n"
         s += f"operations allowed:"
         for operation in self.operations:
             s = s + f" {operation}"
+        # s += "\nHistory"
+        # for state in self.history:
+        #     s += f"\n{state}"
+        s += f"\ntarget: {self.target}"
         s += f"\navailable numbers: {self.field}"
         return s
 
@@ -137,6 +138,8 @@ class Game:
         # did we win?
         self.check_success()
 
+        self.history.append(copy(self.field))
+
         return result
 
     def check_success(self):
@@ -147,6 +150,13 @@ class Game:
         won = self.target in self.field
         self.won = won
         return won
+
+    def undo(self):
+        if len(self.history) > 1:
+            self.history.pop(-1)
+            self.field = self.history[-1]
+        else:
+            print("Nothing to undo")
 
 
 def create_random_game(maximum_starter=25, maximum_intermediate_result=200, maximum_small_starter=10):
@@ -195,6 +205,7 @@ def run_game(my_game: Game, max_steps=None):
         print()
         print("input example: 1 + 2")
         print("To stop the game, type 'exit'")
+        print("To undo, type 'undo'")
         print(my_game)
 
         equation = input("Enter equation: ")
@@ -204,6 +215,10 @@ def run_game(my_game: Game, max_steps=None):
         if equation.lower().rfind("exit") >= 0 or equation.lower().rfind("quit") >= 0:
             print("exiting")
             exit(0)
+
+        if equation.lower() == "undo":
+            my_game.undo()
+            continue
 
         try:
             # user input should be int op int
@@ -229,6 +244,9 @@ def run_game(my_game: Game, max_steps=None):
                     # we only have one number left, but it's not the target
                     print("LOOOOOSER!! HAHAHA!!!")
                     exit(0)
+                print("History:")
+                for state in my_game.history:
+                    print(state)
             except DigitsError as e:
                 print(e.message)
         except ValueError:
