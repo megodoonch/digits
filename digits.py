@@ -173,18 +173,33 @@ def create_random_game(maximum_starter=25, maximum_intermediate_result=200, maxi
     while len(game.field) > 1:
         # print(game)
         op = random.choice(game.operations)
-        numbers = random.sample(game.field, k=2)
-        try:
-            result = game.calculate_result(numbers[0], op, numbers[1])
-        except DigitsError as e:
-            # print(e)
-            continue
-        if result > maximum_intermediate_result:
-            continue
-        print(game)
-        print(f"{numbers[0]} {op} {numbers[1]}")
-        game.take_step(numbers[0], op, numbers[1])
-        game.target = result
+        found = False
+        if op == "/":
+            tries = 5
+        elif op == "-":
+            tries = 2
+        else:
+            tries = 1
+        attempt = 0
+        while attempt < tries and not found:
+            numbers = random.sample(game.field, k=2)
+            try:
+                result = game.calculate_result(numbers[0], op, numbers[1])
+                found = True
+                # print("found division!")
+            except DigitsError as e:
+                # print(e)
+                attempt += 1
+                continue
+            if result > maximum_intermediate_result:
+                attempt += 1
+                found = False
+                continue
+        # print(game)
+        # print(f"{numbers[0]} {op} {numbers[1]}")
+        if found:
+            game.take_step(numbers[0], op, numbers[1])
+            game.target = result
     return Game(game.target, game.starters)
 
 
