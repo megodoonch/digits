@@ -9,13 +9,14 @@ We need to get the goal with any combinations of the given numbers using the ope
 
 TODO Possible variants:
 
-    - Must use all digits
+    - DONE Must use all digits
     - More operations allowed (square, square root?)
     - Use all of R (Reals: negatives, fractions, square roots...) or Q or at least Z
     - Larger solution space (Z? Q? R?)
     - Different number of starting digits
     - Unique solution
     - give countdown from target (Doug will explain)
+    - only prime starters
 
 Definitions:
     - target (the number we want to get to)
@@ -27,200 +28,32 @@ DONE Create a game with a solution (the target and starters)
 TODO GUI (ask Soren?)
 
 """
-import random
-from copy import copy
+from game import DigitsError
+from game_maker import generate_game_without_one_step_solution, Game
 
 
-class DigitsError(Exception):
-    def __init__(self, message="Error in game"):
-        self.message = message
-        super().__init__(self.message)
-
-
-class Game:
-    """
-    The state of the game after 0 or more steps
-
-    Attributes:
-        target: the number the player wants to reach
-        field: the current numbers (initialised to the 6 starters)
-    """
-
-    def __init__(self, target, field: list[int]):
-        self.target = target
-        self.starters = copy(field)
-        self.field = field
-        self.operations = ["+", "-", "x", "/"]
-        self.won = self.target in self.field
-        self.history = [copy(self.field)]
-
-    def __repr__(self):
-        s = ""
-        s += f"operations allowed:"
-        for operation in self.operations:
-            s = s + f" {operation}"
-        # s += "\nHistory"
-        # for state in self.history:
-        #     s += f"\n{state}"
-        s += f"\ntarget: {self.target}"
-        s += f"\navailable numbers: {self.field}"
-        return s
-
-    def get_operation_from_string(self, operation_as_string):
-        if operation_as_string == "+":
-            return int.__add__
-        elif operation_as_string == "-":
-            return int.__sub__
-        elif operation_as_string in ["x", "*"]:
-            return int.__mul__
-        elif operation_as_string == "/":
-            return int.__divmod__
-        else:
-            raise ValueError(f"Operation must be one of {self.operations}")
-
-    def calculate_result(self, first_input: int, operation_as_string: str, second_input: int):
-        """
-        given the two numbers and operation, calculates the result of applying the operation
-        :param first_input: int e.g. 1
-        :param operation_as_string: string: needs to be +, -, x, or /, e.g. "+"
-        :param second_input: int e.g. 2
-        :return: int e.g. 3
-        """
-        if operation_as_string == "+":
-            return first_input + second_input
-        elif operation_as_string == "-":
-            result = first_input - second_input
-            if result < 1:
-                raise DigitsError("negative numbers are not allowed")
-            return result
-        elif operation_as_string in ["x", "*", "X"]:
-            return first_input * second_input
-        elif operation_as_string == "/":
-            dividend, remainder = int.__divmod__(first_input, second_input)
-            if remainder > 0:
-                raise DigitsError(f"{first_input} cannot be evenly divided by {second_input}")
-            else:
-                return dividend
-        else:
-            raise DigitsError(f"Operation must be one of {self.operations}")
-
-    def are_valid_inputs(self, number_1, number_2):
-        """
-        Checks if the inputs are in the field.
-        :param number_2: int: the second input from the user
-        :param number_1: int: the first inputs number from the user.
-        :return: bool
-        """
-        if number_1 == number_2:
-            return self.field.count(number_1) > 1
-        else:
-            return number_1 in self.field and number_2 in self.field
-
-    def take_step(self, first_number: int, operation_as_string: str, second_number: int):
-        """
-        Given inputs from the user, update the game.
-            Apply the operation and replace the two operands with the result.
-        :param first_number: int: first user input
-        :param operation_as_string: +,-,x, or /
-        :param second_number: third user input
-        :return: the result of apply the operation (just for printing purposes
-        """
-        if not self.are_valid_inputs(first_number, second_number):
-            raise DigitsError(f"{first_number} and/or {second_number} not available")
-
-        result = self.calculate_result(first_number, operation_as_string, second_number)
-
-        # remove the inputs from the field and add the result of the operation
-        self.field.remove(first_number)
-        self.field.remove(second_number)
-        self.field.append(result)
-
-        # did we win?
-        self.check_success()
-
-        self.history.append(copy(self.field))
-
-        return result
-
-    def check_success(self):
-        """
-        updates self.won
-        :return:
-        """
-        won = self.target in self.field
-        self.won = won
-        return won
-
-    def undo(self):
-        if len(self.history) > 1:
-            self.history.pop(-1)
-            self.field = self.history[-1]
-        else:
-            print("Nothing to undo")
-
-
-def create_random_game(maximum_starter=25, maximum_intermediate_result=200, maximum_small_starter=10):
-    """
-    Create a game
-    :param maximum_small_starter: half the starting digits are no bigger than this (default 10)
-    :param maximum_intermediate_result: the gold solution never has an intermediate result higher than this (default 200)
-    :param maximum_starter: starter digits can't be larger than this (default 25)
-    :return: Game
-    """
-    starters = random.sample(range(1, maximum_small_starter), k=3)
-    starters += random.sample([i for i in range(1, maximum_starter) if i not in starters], k=3)
-    game = Game(0, starters)
-    while len(game.field) > 1:
-        # print(game)
-        op = random.choice(game.operations)
-        found = False
-        if op == "/":
-            tries = 5
-        elif op == "-":
-            tries = 2
-        else:
-            tries = 1
-        attempt = 0
-        while attempt < tries and not found:
-            numbers = random.sample(game.field, k=2)
-            try:
-                result = game.calculate_result(numbers[0], op, numbers[1])
-                found = True
-                # print("found division!")
-            except DigitsError as e:
-                # print(e)
-                attempt += 1
-                continue
-            if result > maximum_intermediate_result:
-                attempt += 1
-                found = False
-                continue
-        # print(game)
-        # print(f"{numbers[0]} {op} {numbers[1]}")
-        if found:
-            game.take_step(numbers[0], op, numbers[1])
-            game.target = result
-    return Game(game.target, game.starters)
-
-
-def run_game(my_game: Game, max_steps=None):
+def run_game(my_game: Game, max_steps=None, no_remainders_allowed=False):
     """
     User interface.
     Uses input to interact with player.
     Inputs required to be separated by white space, as in 1 + 2
+    :param no_remainders_allowed: if True, win condition requires all digits be used
     :param max_steps: Stop after this many steps. Default 1000000000
     :param my_game: an initialised Game
     """
     if max_steps is None:
         max_steps = 1000000000
     step = 0
+    print("Instructions")
+    print("\tinput example: 1 + 2")
+    if no_remainders_allowed:
+        print("\tNo leftover digits allowed!")
+    print("\tTo stop the game, type 'exit'")
+    print("\tTo undo, type 'undo'")
+    print(f"\t{my_game.operations_string()}")
     while step < max_steps:
     # while False:
         step += 1
-        print()
-        print("input example: 1 + 2")
-        print("To stop the game, type 'exit'")
-        print("To undo, type 'undo'")
         print(my_game)
 
         equation = input("Enter equation: ")
@@ -245,23 +78,28 @@ def run_game(my_game: Game, max_steps=None):
                 # try to update the game
                 result = my_game.take_step(first_input_number, input_operation_as_string, second_input_number)
                 print(f"{equation} =", result)
-                if my_game.won:
+                # if we're playing the version where no remainders are allowed, check that
+                if no_remainders_allowed:
+                    condition = len(my_game.field) == 1
+                else:
+                    condition = True
+                if my_game.won and condition:
                     print("CONGRATULATIONS! You win!")
-                    print("Target:", my_game.target)
+                    # print("Target:", my_game.target)
                     if len(my_game.field) > 1:
                         s = "Remaining digit"
                         if len(my_game.field) > 2:
                             s += "s"
                         my_game.field.remove(my_game.target)
                         print(f"{s}: {my_game.field}")
+                    print(my_game.history_string())
                     exit(0)
                 if len(my_game.field) == 1:
                     # we only have one number left, but it's not the target
                     print("LOOOOOSER!! HAHAHA!!!")
+                    print(my_game)
+                    print(my_game.history_string())
                     exit(0)
-                print("History:")
-                for state in my_game.history:
-                    print(state)
             except DigitsError as e:
                 print(e.message)
         except ValueError:
@@ -275,11 +113,19 @@ def run_game(my_game: Game, max_steps=None):
 
 if __name__ == '__main__':
 
-    created_game = create_random_game()
+    # maximum starter: no starters higher than this
+    # maximum intermediate result: the "official" solution never goes above this during calculation
+    # maximum small starter: three of the six starters don't even go above this
+    created_game = generate_game_without_one_step_solution(maximum_starter=25,
+                                                           maximum_intermediate_result=1000,
+                                                           maximum_small_starter=10,
+                                                           max_target=500)
     # A real NYTimes game, level 2
-    # my_game = GameState(106, [2,5,7,10,11,25])
+    # my_game = Game(106, [2,5,7,10,11,25])
 
-    run_game(created_game)
+    # no_remainders_allowed set to True means we have to use up all the digits
+    run_game(created_game, no_remainders_allowed=True)                    # in this version, you win even if you have more digits remaining
+
 
 
 
