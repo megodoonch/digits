@@ -52,6 +52,7 @@ def run_game(my_game: Game, max_steps=None, no_remainders_allowed=False):
     print("\tTo stop the game, type 'exit'")
     print("\tTo undo, type 'undo'")
     print(f"\t{my_game.operations_string()}")
+    print(f"\tNegatives {'are not' if not my_game.negatives_allowed else 'are'} allowed.")
     while step < max_steps:
     # while False:
         step += 1
@@ -120,7 +121,8 @@ if __name__ == '__main__':
     created_game = generate_game_without_one_step_solution(maximum_starter=25,
                                                            maximum_intermediate_result=1000,
                                                            maximum_small_starter=10,
-                                                           max_target=500)
+                                                           max_target=500,
+                                                           negatives_allowed=True)
     # A real NYTimes game, level 2
     # my_game = Game(106, [2,5,7,10,11,25])
 

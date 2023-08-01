@@ -10,13 +10,14 @@ class Game:
         field: the current numbers (initialised to the 6 starters)
     """
 
-    def __init__(self, target, field: list[int]):
+    def __init__(self, target, field: list[int], negatives_allowed=False):
         self.target = target
         self.starters = copy(field)
         self.field = field
         self.operations = ["+", "-", "x", "/"]
         self.won = self.target in self.field
         self.history = [copy(self.field)]
+        self.negatives_allowed = negatives_allowed
 
     def __repr__(self):
         s = ""
@@ -62,7 +63,7 @@ class Game:
             return first_input + second_input
         elif operation_as_string == "-":
             result = first_input - second_input
-            if result < 1:
+            if result < 1 and not self.negatives_allowed:
                 raise DigitsError("negative numbers are not allowed")
             return result
         elif operation_as_string in ["x", "*", "X"]:

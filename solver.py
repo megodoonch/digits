@@ -29,18 +29,19 @@ def find_all_solutions(game, steps=5):
             for i in range(6-m):  # 6-m since m tracks the step we're on, and at each step we lose a digit
                 for j in range(6-m):
                     # + and x are commutative, so just try one. - and / can't work if the second number is biggest.
-                    if i != j and g.field[i] > g.field[j]:
+                    if i != j:
                         for op in g.operations:
-                            try:
-                                # if the operation works, store a copy
-                                g2 = deepcopy(g)
-                                g2.take_step(g2.field[i], op, g2.field[j])
-                                new_games.append(g2)
-                                # print(i, j, ":", g.field[i], op, g.field[j])
-                                # print(g2.field)
-                            except DigitsError:
-                                # if this move is illegal, just skip it
-                                continue
+                            if g.field[i] > g.field[j] or (g.negatives_allowed and op == '-'):
+                                try:
+                                    # if the operation works, store a copy
+                                    g2 = deepcopy(g)
+                                    g2.take_step(g2.field[i], op, g2.field[j])
+                                    new_games.append(g2)
+                                    # print(i, j, ":", g.field[i], op, g.field[j])
+                                    # print(g2.field)
+                                except DigitsError:
+                                    # if this move is illegal, just skip it
+                                    continue
             all_new_games += new_games
         games.append(all_new_games)
 
