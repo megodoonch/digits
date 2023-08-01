@@ -15,6 +15,7 @@ TODO Possible variants:
     - Larger solution space (Z? Q? R?)
     - Different number of starting digits
     - Unique solution
+        - solver can't do this now, because it's not a decision tree
     - give countdown from target (Doug will explain)
     - only prime starters
 
