@@ -3,3 +3,4 @@
 .idea/digits.iml
 .idea/misc.xml
 *.xml
+*.pyc
