@@ -18,7 +18,7 @@ def generate_game_without_one_step_solution(maximum_starter=25, maximum_intermed
         tries += 1
         g = create_random_game(maximum_starter, maximum_intermediate_result, maximum_small_starter,
                                negatives_allowed=negatives_allowed)
-        if g.target > max_target:
+        if abs(g.target) > max_target:
             continue
         if len(get_one_step_solutions(g)) == 0:
             game = g
@@ -61,7 +61,7 @@ def create_random_game(maximum_starter=25, maximum_intermediate_result=1000, max
                 # print(e)
                 attempt += 1
                 continue
-            if result > maximum_intermediate_result:
+            if abs(result) > maximum_intermediate_result:
                 attempt += 1
                 found = False
                 continue

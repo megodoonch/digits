@@ -127,7 +127,7 @@ if __name__ == '__main__':
     # my_game = Game(106, [2,5,7,10,11,25])
 
     # no_remainders_allowed set to True means we have to use up all the digits
-    run_game(created_game, no_remainders_allowed=True)                    # in this version, you win even if you have more digits remaining
+    run_game(created_game, no_remainders_allowed=False)                    # in this version, you win even if you have more digits remaining
 
 
 

@@ -66,14 +66,15 @@ if __name__ == "__main__":
 
     from game_maker import create_random_game
 
-    random.seed(10)
+    # random.seed(10)
     starting_game = create_random_game(maximum_intermediate_result=300)
     print(starting_game)
 
+    print("solving...")
     winners, all_tries = find_all_solutions(starting_game)
 
     print("total winning games:", len(winners))
-    print(winners[-1])
+    # print(winners[-1])
     winners_no_remainders = [g for g in winners if len(g.field) == 1]
     print("winners with no remainders:", len(winners_no_remainders))
     winners_one_step = [g for g in winners if len(g.field) == 5]
